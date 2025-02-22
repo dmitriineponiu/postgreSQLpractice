@@ -19,4 +19,16 @@ func SetupRoutes() {
 			json.NewEncoder(w).Encode(map[string]string{"message":"Method Not Allowed!"})
 		}
 	})
+
+	http.HandleFunc("/books/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPut:
+			handlers.UpdateBookInfoHandler(w, r)
+		case http.MethodDelete:
+			handlers.DeleteBookHandler(w, r)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			json.NewEncoder(w).Encode(map[string]string{"message":"Method Not Allowed!"})
+		}
+	})
 }

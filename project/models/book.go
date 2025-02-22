@@ -1,7 +1,7 @@
 package models
 
 import (
-	"database/sql"	
+	"log"
 	db "pstgSQL/project/database"
 )
 
@@ -14,21 +14,76 @@ type Books struct {
 }
 
 func NewBook(title, author, isbn string, published_year int) error {
-	query := `INSERT INTO users (title, author, published_year, isbn)
+	query := `INSERT INTO book (title, author, published_year, isbn)
 	VALUES ($1, $2, $3, $4)`
-	_, err := db.DB.Exec(query, title, author, published_year)
+	_, err := db.DB.Exec(query, title, author, published_year, isbn)
 	return err
 }
 
-func GetAllBooks(rows *sql.Rows) ([]Books, error) {
+func GetAllBooks() ([]Books, error) {
+	rows, err := db.DB.Query("SELECT id, title, author, published_year, isbn FROM book")
+		if err != nil {			
+			log.Fatal("Error when querying data from table.\n", err)
+			return nil, err
+		}
+		defer rows.Close()
 	books := []Books{}
 	for rows.Next() {
 		var book Books 
 		if err := rows.Scan(&book.ID, &book.Title, &book.Author,
 			 &book.Published_year, &book.ISBN); err != nil {
+			log.Fatal("Error scanning book.\n", err)
 			return nil, err
 		}
 		books = append(books, book)
 	}
 	return books, nil
+}
+
+func IfExistID(ID int) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM book WHERE id = $1)`
+	var exist bool
+	err := db.DB.QueryRow(query, ID).Scan(&exist)
+	if err != nil {
+		return false, err
+	}
+	return exist, nil
+}
+
+func Updateinfo(ID int, newInfo Books) error {	
+	exist, err :=IfExistID(ID); 
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		log.Fatal("ID not found!")
+		return  nil
+	}
+
+	query := `UPDATE book SET title = $1, author = $2 WHERE id = $3`
+	_, err = db.DB.Query(query, newInfo.Title, newInfo.Author, ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteBook(ID int) error {
+	exist, err :=IfExistID(ID); 
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		log.Fatal("ID not found!")
+		return  nil
+	}
+
+	query := `DELETE FROM book WHERE id = $1`
+	_, err = db.DB.Query(query, ID)
+	if err != nil {		 
+		return err
+	}
+	return nil
 }
