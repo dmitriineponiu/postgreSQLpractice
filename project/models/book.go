@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	db "pstgSQL/project/database"
 )
@@ -57,12 +58,11 @@ func Updateinfo(ID int, newInfo Books) error {
 	}
 
 	if !exist {
-		log.Fatal("ID not found!")
-		return  nil
+		return fmt.Errorf("Book with ID %d not found", ID)
 	}
 
 	query := `UPDATE book SET title = $1, author = $2 WHERE id = $3`
-	_, err = db.DB.Query(query, newInfo.Title, newInfo.Author, ID)
+	_, err = db.DB.Exec(query, newInfo.Title, newInfo.Author, ID)
 	if err != nil {
 		return err
 	}
@@ -76,12 +76,11 @@ func DeleteBook(ID int) error {
 	}
 
 	if !exist {
-		log.Fatal("ID not found!")
-		return  nil
+		return fmt.Errorf("Book with ID %d not found", ID)
 	}
 
 	query := `DELETE FROM book WHERE id = $1`
-	_, err = db.DB.Query(query, ID)
+	_, err = db.DB.Exec(query, ID)
 	if err != nil {		 
 		return err
 	}
