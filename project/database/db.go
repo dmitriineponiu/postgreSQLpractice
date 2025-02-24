@@ -58,5 +58,5 @@ func SQLScript() {
 	if err != nil {
 		log.Fatal("Error with SQL file: ", err)
 	}
-	fmt.Println("Table 'books' created successfully!")
+	fmt.Println("Tables 'book' and 'users' created successfully!")
 }
